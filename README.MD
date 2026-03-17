@@ -1,6 +1,6 @@
 # Personal To-Do List Manager
 
-A modern, colorful web application for personal task management with comprehensive features including categories, calendars, reminders, productivity tracking, and analytics. The project includes 9 interconnected pages with responsive design, local storage-based data persistence, and user authentication.
+A modern, colorful web application for personal task management with comprehensive features including categories, calendars, reminders, productivity tracking, and analytics. The project includes 8 interconnected pages with responsive design, local storage-based data persistence, and user authentication.
 
 ---
 
@@ -220,31 +220,8 @@ The entire application uses browser's `localStorage` for data persistence and `s
 
 ---
 
-### 8. **search.html** - Global Search Interface
-**Purpose:** Search functionality for tasks, categories, and dashboard content.
 
-**Features:**
-- Dropdown to select search type (Category, Task, Dashboard)
-- Search input field
-- Search button with login verification
-- Disabled search for non-authenticated users
-- Logout functionality
-- User greeting for logged-in users
-
-**Search Types:**
-- **Category:** Search within categories
-- **Task:** Search within tasks
-- **Dashboard:** Search in dashboard data
-
-**Authentication:**
-- Checks `sessionStorage.getItem("loggedInUser")`
-- Disables search if user not logged in
-- Shows appropriate message based on login status
-- Redirects to login if attempting search while logged out
-
----
-
-### 9. **report.html** - Analytics & Report Generation
+### 8. **report.html** - Analytics & Report Generation
 **Purpose:** Comprehensive analytics dashboard with data export capabilities.
 
 **Features:**
@@ -282,18 +259,6 @@ The entire application uses browser's `localStorage` for data persistence and `s
 - **Timestamp Display:** Full date and time for each entry
 - **Content Preview:** Shows journal entry text
 
-**Export Capabilities:**
-- **JSON Backup:** Downloads complete data as JSON file with timestamp
-- **PDF Export:** Print-friendly report generation with professional formatting
-- **Data Reset:** Complete data wipe with confirmation dialogs
-
-**PDF Report Features:**
-- **Professional Layout:** Clean, print-optimized design
-- **Complete Statistics:** All metrics included in PDF format
-- **Priority Tables:** Detailed breakdown by priority and category
-- **Journal History:** Recent entries formatted for printing
-- **Timestamp:** Generation date included in report
-
 **Navigation:**
 - Links to Dashboard, Tasks, Calendar, and Home pages
 - Consistent styling with other application pages
@@ -310,7 +275,7 @@ front.html → login.html
                 ↓
           home.html (navigation hub)
                 ↓
-        (Choose section: tasks, dashboard, calendar, search, categories, report)
+        (Choose section: tasks, dashboard, calendar, categories, report)
 ```
 
 **Session Management:**
@@ -440,7 +405,7 @@ front.html → login.html
 
 ## 🔧 Technical Stack
 
-- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
+- **Frontend:** HTML5, CSS3, JavaScript
 - **Storage:** Browser LocalStorage & SessionStorage
 - **Authentication:** Client-side with LocalStorage
 - **Responsive Design:** CSS Grid & Flexbox
@@ -458,24 +423,3 @@ front.html → login.html
 
 ---
 
-## ⚠️ Important Notes
-
-1. **Data Persistence:** All data is stored locally in the browser. Clearing browser data will erase all stored information.
-2. **Security Note:** Passwords are stored in plain text in localStorage. For production, implement proper backend authentication.
-3. **Default User:** Credentials must be registered first before logging in.
-
----
-
-## 📝 Usage Instructions
-
-1. **Start:** Open `front.html` in a web browser
-2. **Register:** Click "Get Started" → Register with username, email, password
-3. **Login:** Return to login form and enter credentials
-4. **Navigate:** Choose from available sections in home.html
-5. **Manage Tasks:** Add, edit, complete, and delete tasks in tasks.html
-6. **Track Progress:** Monitor stats in dashboard.html
-7. **Organize:** Create and manage categories in categories.html
-8. **Search:** Use search.html to find tasks and categories
-9. **View Analytics:** Access detailed reports and export data in report.html
-
----
