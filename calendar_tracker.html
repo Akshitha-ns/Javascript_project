@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calendar, Reminders & Tracker — To-Do Manager</title>
+
+<style>
+  :root {
+    --accent: #6c63ff;
+    --bg1: #a0f7f2;
+    --bg2: #b28dff;
+    --card-bg: #fff;
+  }
+
+  body {
+    font-family: "Inter", system-ui, Segoe UI, Roboto, Arial;
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 30px 10px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 1100px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  h1, h2, h3 {
+    color: #2d2d2d;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .calendar-day {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 3px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+
+  .calendar-day:hover {
+    background: #ecebff;
+    cursor: pointer;
+  }
+
+  input, textarea, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    background: var(--accent);
+    color: white;
+    border: none;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #4b44d6;
+  }
+
+  #remList div {
+    background: #f7f7ff;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  textarea {
+    width: 100%;
+    resize: none;
+  }
+
+  #reportChart {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+
+  #report {
+    margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>📅 Calendar, Reminders & Progress Tracker</h1>
+    <div class="grid">
+      <!-- Left Section -->
+      <div>
+        <div class="card">
+          <h3>Mini Calendar</h3>
+          <div id="cal" style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center"></div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <h3>Set Reminder</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+            <input id="remTask" placeholder="Task title" style="flex:1;min-width:120px">
+            <input id="remTime" type="datetime-local" style="min-width:150px">
+            <button onclick="setReminder()">Set</button>
+          </div>
+          <div id="remList"></div>
+        </div>
+      </div>
+
+      <!-- Right Section -->
+      <div>
+        <div class="card">
+          <h3>Notes / Journal</h3>
+          <textarea id="noteText" rows="4" placeholder="Write your thoughts or reflections here..."></textarea>
+          <div style="margin-top:10px">
+            <button onclick="saveNote()">Save Note</button>
+            <button style="background:#e74c3c" onclick="clearNotes()">Clear</button>
+          </div>
+          <div id="notesArea" class="notes" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <h3>Progress Report</h3>
+          <canvas id="reportChart" width="600" height="180"></canvas>
+          <div id="reportText" style="margin-top:8px;font-weight:500;"></div>
+          <div style="margin-top:10px"><a href="report.html" style="color:var(--accent);text-decoration:none;font-weight:500;">📊 View Full Report</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- storage helpers ---------- */
+function loadData(){
+  const raw = localStorage.getItem('todoAppData');
+  if (!raw) return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } };
+  try { return JSON.parse(raw); } catch (e) { return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } }; }
+}
+function saveData(d){ localStorage.setItem('todoAppData', JSON.stringify(d)); }
+
+/* ---------- Calendar ---------- */
+function renderCalendar(){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const first = new Date(year, month, 1);
+  const startDay = first.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const data = loadData();
+  const cal = document.getElementById('cal');
+  cal.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.style.width = '100%';
+  header.style.textAlign = 'center';
+  header.style.marginBottom = '8px';
+  header.innerHTML = `<strong>${now.toLocaleString(undefined,{month:'long'})} ${year}</strong>`;
+  cal.appendChild(header);
+
+  for (let i = 0; i < startDay; i++) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'calendar-day';
+    placeholder.style.visibility = 'hidden';
+    cal.appendChild(placeholder);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const e = document.createElement('div');
+    e.className = 'calendar-day';
+    e.textContent = d;
+    const dateStr = new Date(year, month, d).toISOString().split('T')[0];
+    const tasks = (data.tasks || []).filter(t => t.due && t.due.startsWith(dateStr));
+    if (tasks.length) e.style.background = '#ffeaa7';
+    if (new Date(year, month, d).toDateString() === new Date().toDateString()) {
+      e.style.boxShadow = '0 0 0 2px var(--accent) inset';
+    }
+    cal.appendChild(e);
+  }
+}
+
+/* ---------- Reminders ---------- */
+function loadReminders(){ const raw = localStorage.getItem('todoReminders') || '[]'; try { return JSON.parse(raw); } catch(e) { return []; } }
+function saveReminders(r){ localStorage.setItem('todoReminders', JSON.stringify(r)); }
+
+function renderRemList(){
+  const list = loadReminders();
+  const el = document.getElementById('remList');
+  el.innerHTML = '';
+  if(!list.length){ el.textContent = 'No reminders set.'; return; }
+  list.forEach((r,i) => {
+    const d = document.createElement('div');
+    d.style.display = 'flex';
+    d.style.justifyContent = 'space-between';
+    d.style.alignItems = 'center';
+    d.style.marginBottom = '6px';
+    const left = document.createElement('div');
+    left.textContent = `${r.title} — ${new Date(r.time).toLocaleString()}`;
+    const btn = document.createElement('button');
+    btn.textContent = 'Delete';
+    btn.style.background = '#ff7675';
+    btn.onclick = () => { const list2 = loadReminders(); list2.splice(i,1); saveReminders(list2); renderRemList(); };
+    d.appendChild(left);
+    d.appendChild(btn);
+    el.appendChild(d);
+  });
+}
+
+function setReminder(){
+  const t = document.getElementById('remTask').value.trim();
+  const time = document.getElementById('remTime').value;
+  if (!t || !time) return alert('Provide title and time');
+  const list = loadReminders();
+  list.push({ title: t, time: new Date(time).toISOString(), id: Date.now() });
+  saveReminders(list);
+  renderRemList();
+  document.getElementById('remTask').value = '';
+  document.getElementById('remTime').value = '';
+}
+
+function checkReminders(){
+  const now = new Date();
+  const list = loadReminders();
+  const due = list.filter(r => new Date(r.time) <= now);
+  if (due.length) {
+    due.forEach(d => {
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Reminder: ' + d.title);
+        } else {
+          alert('Reminder: ' + d.title);
+        }
+      } catch (e) {
+        alert('Reminder: ' + d.title);
+      }
+    });
+    const remaining = list.filter(r => new Date(r.time) > now);
+    saveReminders(remaining);
+    renderRemList();
+  }
+}
+
+/* ---------- Notes / Journal ---------- */
+function saveNote(){
+  const txt = document.getElementById('noteText').value.trim();
+  if (!txt) return;
+  const d = loadData();
+  if (!Array.isArray(d.journal)) d.journal = [];
+  d.journal.push({ title: txt, date: new Date().toISOString() });
+  saveData(d);
+  document.getElementById('noteText').value = '';
+  renderNotes();
+  renderReport();
+}
+
+function clearNotes(){
+  if (!confirm('Clear all notes?')) return;
+  const d = loadData();
+  d.journal = [];
+  saveData(d);
+  renderNotes();
+  renderReport();
+}
+
+function renderNotes(){
+  const d = loadData();
+  const el = document.getElementById('notesArea');
+  el.innerHTML = '';
+  (d.journal || []).slice().reverse().forEach(j => {
+    const p = document.createElement('div');
+    p.style.marginBottom = '6px';
+    p.textContent = `${new Date(j.date).toLocaleString()} — ${j.title}`;
+    el.appendChild(p);
+  });
+}
+
+/* ---------- Report & Chart ---------- */
+function renderReport(){
+  const d = loadData();
+  const total = (d.tasks || []).length;
+  const completed = (d.tasks || []).filter(t => t.done).length;
+  const pending = total - completed;
+
+  const canvas = document.getElementById('reportChart');
+  canvas.width = 600;
+  canvas.height = 180;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const labels = ['Total','Completed','Pending'];
+  const values = [total, completed, pending];
+  const max = Math.max(1, ...values);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const barW = 100;
+  const gap = 50;
+  ctx.font = '14px sans-serif';
+  labels.forEach((lab, i) => {
+    const x = i * (barW + gap) + 60;
+    const bh = Math.round((values[i] / max) * (h - 60));
+    ctx.fillStyle = '#6c63ff';
+    ctx.fillRect(x, h - 40 - bh, barW, bh);
+    ctx.fillStyle = '#222';
+    ctx.fillText(lab, x, h - 10);
+    ctx.fillText(values[i], x + 30, h - 45 - bh);
+  });
+
+  const streakCurrent = (d.streak && d.streak.current) ? d.streak.current : 0;
+  document.getElementById('reportText').innerText = `🔥 Streak: ${streakCurrent} days • Total tasks: ${total} • Completed: ${completed}`;
+}
+
+/* ---------- Notification Permission ---------- */
+if ('Notification' in window && Notification.permission !== 'granted') {
+  Notification.requestPermission().catch(()=>{/* ignore */});
+}
+
+/* ---------- Initialization ---------- */
+if (!localStorage.getItem('todoAppData')) {
+  saveData({ tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } });
+}
+renderCalendar();
+renderRemList();
+renderNotes();
+renderReport();
+checkReminders();
+setInterval(checkReminders, 30000);
+</script>
+</body>
+</html>

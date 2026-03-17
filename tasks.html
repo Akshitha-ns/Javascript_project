@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tasks — To-Do Manager</title>
+<style>
+  :root{--bg:linear-gradient(135deg, #a0f7f2, #b28dff);--card:#fff;}
+  body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#222;min-height:100vh}
+  .wrap{max-width:980px;margin:24px auto;padding:18px}
+  header{display:flex;justify-content:space-between;align-items:center}
+  .form{display:flex;gap:8px;margin-top:10px}
+  input,select,textarea,button{padding:8px;border-radius:8px;border:1px solid #ddd}
+  .list{margin-top:18px}
+  .task{background:#fff;padding:12px;border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .meta{font-size:13px;color:#666}
+  .prio{padding:6px 8px;border-radius:8px;color:#fff;font-weight:600}
+  button.primary{background:#6c5ce7;color:#fff;border:none}
+  button.ghost{background:transparent;border:1px solid #ddd}
+  .controls button{margin-left:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Task Management</h1>
+      <div>
+        <button class="ghost" onclick="location.href='dashboard.html'">Dashboard</button>
+      </div>
+    </header>
+
+    <div class="form" role="form" aria-label="Add task">
+      <input id="title" placeholder="Title" style="flex:2" />
+      <select id="priority">
+        <option>Low</option>
+        <option>Medium</option>
+        <option selected>High</option>
+      </select>
+      <input id="due" type="datetime-local" />
+      <select id="category"></select>
+      <button class="primary" onclick="addTask()">Add</button>
+    </div>
+
+    <div style="margin-top:10px">
+      <label>Filter:
+        <select id="filter"><option>All</option><option>Completed</option><option>Pending</option></select>
+      </label>
+      <label style="margin-left:10px">Sort:
+        <select id="sort"><option value="created">Created</option><option value="priority">Priority</option><option value="due">Due Date</option></select>
+      </label>
+    </div>
+
+    <div class="list" id="taskList" aria-live="polite"></div>
+  </div>
+
+<script>
+/* ---- storage helpers ---- */
+function loadData(){
+  const raw = localStorage.getItem('todoAppData');
+  if (!raw) return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } };
+  try { return JSON.parse(raw); } catch (e) {
+    return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } };
+  }
+}
+function saveData(d){ localStorage.setItem('todoAppData', JSON.stringify(d)); }
+
+/* ---- UI population ---- */
+function populateCategories(){
+  const data = loadData();
+  const sel = document.getElementById('category');
+  sel.innerHTML = '';
+  // ensure at least General
+  if (!Array.isArray(data.categories) || data.categories.length === 0) data.categories = ['General'];
+  data.categories.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
+  });
+}
+
+/* ---- task CRUD ---- */
+function addTask(){
+  const titleEl = document.getElementById('title');
+  const title = titleEl.value.trim();
+  if (!title) return alert('Enter title');
+
+  const priority = document.getElementById('priority').value;
+  const dueVal = document.getElementById('due').value || null;
+  const cat = document.getElementById('category').value || 'General';
+
+  const data = loadData();
+  const t = {
+    id: Date.now(),
+    title,
+    desc: '',
+    priority,
+    category: cat,
+    due: dueVal ? new Date(dueVal).toISOString() : null,
+    done: false,
+    created: new Date().toISOString()
+  };
+  data.tasks.push(t);
+  saveData(data);
+  clearForm();
+  renderTasks();
+  // optional: updateStreakOnAdd(t) // placeholder if needed
+}
+
+function clearForm(){ document.getElementById('title').value=''; document.getElementById('due').value=''; }
+
+/* ---- rendering ---- */
+function renderTasks(){
+  const data = loadData();
+  let tasks = Array.isArray(data.tasks) ? data.tasks.slice() : [];
+
+  const filter = document.getElementById('filter').value;
+  const sort = document.getElementById('sort').value;
+
+  if (filter === 'Completed') tasks = tasks.filter(t => t.done);
+  if (filter === 'Pending') tasks = tasks.filter(t => !t.done);
+
+  if (sort === 'priority') {
+    tasks.sort((a,b) => prioritySort(a.priority) - prioritySort(b.priority));
+  } else if (sort === 'due') {
+    // ISO strings sort naturally; put tasks without due at the end
+    tasks.sort((a,b) => {
+      if (!a.due && !b.due) return 0;
+      if (!a.due) return 1;
+      if (!b.due) return -1;
+      return a.due.localeCompare(b.due);
+    });
+  } else { // created
+    tasks.sort((a,b) => b.created.localeCompare(a.created));
+  }
+
+  const container = document.getElementById('taskList');
+  container.innerHTML = '';
+
+  tasks.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'task';
+
+    // left side
+    const left = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = t.title;
+    if (t.done) title.style.textDecoration = 'line-through';
+    left.appendChild(title);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = t.category + (t.due ? ' • ' + new Date(t.due).toLocaleString() : '');
+    left.appendChild(meta);
+
+    // right side controls
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.className = 'controls';
+
+    const pr = document.createElement('span');
+    pr.className = 'prio';
+    pr.textContent = t.priority;
+    const prColor = t.priority === 'High' ? '#ff6b6b' : t.priority === 'Medium' ? '#ffb84d' : '#2ecc71';
+    pr.style.background = prColor;
+    right.appendChild(pr);
+
+    const doneBtn = document.createElement('button');
+    doneBtn.className = 'ghost';
+    doneBtn.textContent = t.done ? 'Undo' : 'Done';
+    doneBtn.addEventListener('click', () => toggleDone(t.id));
+    right.appendChild(doneBtn);
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'ghost';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => editTask(t.id));
+    right.appendChild(editBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'ghost';
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', () => removeTask(t.id));
+    right.appendChild(delBtn);
+
+    el.appendChild(left);
+    el.appendChild(right);
+    container.appendChild(el);
+  });
+}
+
+/* helper for priority ordering: smaller => higher priority shown first */
+function prioritySort(p){ return p === 'High' ? 1 : p === 'Medium' ? 2 : 3; }
+
+/* ---- task actions ---- */
+function toggleDone(id){
+  const data = loadData();
+  const t = data.tasks.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+
+  if (t.done) {
+    // record completion entry
+    data.journal = data.journal || [];
+    data.journal.push({ id: t.id, title: t.title, date: new Date().toISOString() });
+    // update streak using the same data object, so changes persist in single save
+    updateStreakOnComplete(data);
+  }
+
+  saveData(data);
+  renderTasks();
+}
+
+function editTask(id){
+  const data = loadData();
+  const t = data.tasks.find(x => x.id === id);
+  if (!t) return;
+  const newTitle = prompt('Edit title', t.title);
+  if (newTitle === null) return; // cancelled
+  t.title = newTitle.trim() || t.title;
+  saveData(data);
+  renderTasks();
+}
+
+function removeTask(id){
+  if (!confirm('Delete task?')) return;
+  const data = loadData();
+  data.tasks = data.tasks.filter(x => x.id !== id);
+  saveData(data);
+  renderTasks();
+}
+
+/* ---- streak logic (now mutates the passed data object) ---- */
+function updateStreakOnComplete(data){
+  if (!data) data = loadData();
+  const todayISO = new Date().toDateString();
+  const lastDateStr = data.streak && data.streak.lastDate ? data.streak.lastDate : null;
+
+  // if same-day completion already recorded, don't increment again
+  if (lastDateStr === todayISO) return;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  if (lastDateStr && lastDateStr === yesterdayStr) {
+    data.streak = data.streak || {};
+    data.streak.current = (data.streak.current || 0) + 1;
+  } else {
+    data.streak = data.streak || {};
+    data.streak.current = 1;
+  }
+  data.streak.lastDate = todayISO;
+  // do not save here — caller will save once to avoid overwriting other changes
+}
+
+/* optional placeholder (kept for compatibility) */
+function updateStreakOnAdd(t){ /* placeholder if you want to affect streak when adding tasks */ }
+
+/* ---- initialization ---- */
+if (!localStorage.getItem('todoAppData')) {
+  saveData({ tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } });
+}
+populateCategories();
+renderTasks();
+
+/* ---- UI event listeners ---- */
+document.getElementById('filter').addEventListener('change', renderTasks);
+document.getElementById('sort').addEventListener('change', renderTasks);
+</script>
+</body>
+</html>

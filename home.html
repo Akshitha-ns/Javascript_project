@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal To-Do List Manager</title>
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #fff;
+      --accent: #6c63ff;
+    }
+
+    body {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #a0f7f2, #b28dff);
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+
+
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 900px;
+      margin: 48px auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      justify-items: center;
+      margin-top: 40px;
+      width: 100%;
+    }
+
+
+    a.card {
+      display: block;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 6px 18px rgba(20, 20, 60, 0.06);
+      width: 90%;
+      max-width: 280px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    a.card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(20, 20, 60, 0.1);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 14px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #00c2ff);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"></div>
+      <div>
+        <h1>Personal To-Do List Manager</h1>
+        <div class="muted">A colorful, local-storage-based productivity app — 5 pages included</div>
+      </div>
+
+      <nav>
+
+        <a href="front.html">Home</a>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </nav>
+    </header>
+
+    <section class="cards">
+      <a class="card" href="dashboard.html">
+        <h3>Dashboard / Home</h3>
+        <p class="muted">Overview: totals, progress, streaks, quick add.</p>
+      </a>
+
+      <a class="card" href="tasks.html">
+        <h3>Task Management</h3>
+        <p class="muted">Add / Edit / Delete / Complete / Priority / Sorting.</p>
+      </a>
+
+      <a class="card" href="categories.html">
+        <h3>Category / Planner</h3>
+        <p class="muted">Create categories and filter tasks by category.</p>
+      </a>
+
+      <a class="card" href="calendar_tracker.html">
+        <h3>Calendar, Reminders & Tracker</h3>
+        <p class="muted">Mini calendar, reminders, notes, progress bars.</p>
+      </a>
+
+      <a class="card" href="report.html">
+        <h3>Report & Analytics</h3>
+        <p class="muted">View productivity report, analytics, streaks, and journal.</p>
+      </a>
+    </section>
+  </div>
+
+  <script>
+    // Check if user is logged in
+    const loggedInUser = sessionStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser");
+
+    if (!loggedInUser) {
+      alert("Please log in first!");
+      window.location.href = "front.html"; // Replace with your actual login page
+    }
+
+    // Logout function
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      sessionStorage.removeItem("loggedInUser");
+      localStorage.removeItem("loggedInUser");
+      alert("You have been logged out successfully!");
+      window.location.href = "front.html";
+    });
+  </script>
+</body>
+
+</html>

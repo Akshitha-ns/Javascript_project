@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login & Register Page</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #62e6c9, #5046e9);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 380px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2d3436;
+    }
+
+    .input-field {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-field input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .input-field input:focus {
+      border-color: #6c5ce7;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: #6c5ce7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: #5a4ad1;
+    }
+
+    .toggle {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .toggle a {
+      color: #6c5ce7;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .toggle a:hover {
+      text-decoration: underline;
+    }
+
+    .form {
+      transition: transform 0.5s ease-in-out;
+      padding: 40px 30px;
+      width: 100%;
+      display: block;
+    }
+
+    .form.register {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translateX(100%);
+    }
+
+    .form.login {
+      position: relative;
+      transform: translateX(0);
+    }
+
+    .container.active .form.login {
+      transform: translateX(-100%);
+    }
+
+    .container.active .form.register {
+      transform: translateX(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="container">
+    <form class="form login" id="loginForm">
+      <h2>Login</h2>
+      <div class="input-field">
+        <input type="text" id="loginUsername" placeholder="Username" required />
+      </div>
+      <div class="input-field">
+        <input type="password" id="loginPassword" placeholder="Password" required />
+      </div>
+      <button type="submit" class="btn">Login</button>
+      <div class="toggle">
+        <p>Don't have an account? <a id="showRegister">Register</a></p>
+      </div>
+    </form>
+    <form class="form register" id="registerForm">
+      <h2>Register</h2>
+      <div class="input-field">
+        <input type="text" id="regUsername" placeholder="Username" required />
+      </div>
+      <div class="input-field">
+        <input type="email" id="regEmail" placeholder="Email" required />
+      </div>
+      <div class="input-field">
+        <input type="password" id="regPassword" placeholder="Password" required />
+      </div>
+      <button type="submit" class="btn">Register</button>
+      <div class="toggle">
+        <p>Already have an account? <a id="showLogin">Login</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const container = document.getElementById("container");
+    const showRegister = document.getElementById("showRegister");
+    const showLogin = document.getElementById("showLogin");
+
+    showRegister.addEventListener("click", () => {
+      container.classList.add("active");
+    });
+
+    showLogin.addEventListener("click", () => {
+      container.classList.remove("active");
+    });
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+
+    registerForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("regUsername").value;
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+
+      localStorage.setItem("user", JSON.stringify({ username, email, password }));
+      alert("Registration successful! Please login.");
+      container.classList.remove("active");
+    });
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user && user.username === username && user.password === password) {
+        alert("Login successful!");
+        sessionStorage.setItem("loggedInUser", username);
+        const redirectPage = sessionStorage.getItem("redirectAfterLogin") || "home.html";
+        sessionStorage.removeItem("redirectAfterLogin");
+
+        window.location.href = redirectPage;
+      } else {
+        alert("Invalid username or password.");
+      }
+    });
+    function goToLogin(targetPage) {
+      sessionStorage.setItem("redirectAfterLogin", targetPage);
+      window.location.href = "login.html";
+    }
+    window.goToLogin = goToLogin;
+  </script>
+</body>
+</html>

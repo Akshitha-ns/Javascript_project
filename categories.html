@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Categories — To-Do Manager</title>
+<style>
+  body {
+    font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+    margin: 0;
+    background: linear-gradient(135deg, #a0f7f2, #b28dff);
+    color: #222;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 28px auto;
+    padding: 18px;
+  }
+  .cat {
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    flex: 1;
+  }
+  button {
+    background: #6c5ce7;
+    border: none;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover {
+    background: #5a4ad1;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Category / Planner</h1>
+    <p>Create and manage categories. Click a category to filter tasks in the Tasks page.</p>
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input id="newCat" placeholder="New category name">
+      <button onclick="addCategory()">Add</button>
+    </div>
+
+    <div id="catList" style="margin-top:12px"></div>
+  </div>
+
+  <script>
+function loadData(){
+  const raw = localStorage.getItem('todoAppData');
+  if (!raw)
+    return {tasks: [], categories: ['General'], journal: [], streak: {current: 0, lastDate: null}};
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return {tasks: [], categories: ['General'], journal: [], streak: {current: 0, lastDate: null}};
+  }
+}
+
+function saveData(d){ localStorage.setItem('todoAppData', JSON.stringify(d)); }
+
+function renderCats(){
+  const data = loadData();
+  const el = document.getElementById('catList');
+  el.innerHTML = '';
+
+  data.categories.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'cat';
+    d.innerHTML = `
+      <div>
+        <strong>${c}</strong>
+        <div style="font-size:13px;color:#666">
+          ${data.tasks.filter(t => t.category === c).length} tasks
+        </div>
+      </div>
+      <div>
+        <button onclick="renameCat('${c}')">Rename</button>
+        <button onclick="delCat('${c}')">Delete</button>
+        <button onclick="openTasks('${c}')">Open</button>
+      </div>
+    `;
+    el.appendChild(d);
+  });
+}
+
+function addCategory(){
+  const name = document.getElementById('newCat').value.trim();
+  if (!name) return;
+  const data = loadData();
+  if (data.categories.includes(name)) return alert('Category already exists');
+  data.categories.push(name);
+  saveData(data);
+  document.getElementById('newCat').value = '';
+  renderCats();
+}
+
+function renameCat(oldName){
+  const n = prompt('Rename category', oldName);
+  if (!n) return;
+  const data = loadData();
+  const i = data.categories.indexOf(oldName);
+  if (i === -1) return;
+  data.categories[i] = n;
+  data.tasks.forEach(t => {
+    if (t.category === oldName) t.category = n;
+  });
+  saveData(data);
+  renderCats();
+}
+
+function delCat(name){
+  if (name === 'General') return alert('Cannot delete the General category');
+  if (!confirm('Delete category and move tasks to General?')) return;
+  const data = loadData();
+  data.categories = data.categories.filter(c => c !== name);
+  data.tasks.forEach(t => {
+    if (t.category === name) t.category = 'General';
+  });
+  saveData(data);
+  renderCats();
+}
+
+function openTasks(name){
+  localStorage.setItem('todo_filter_category', name);
+  window.open('tasks.html', '_blank');
+}
+
+if (!localStorage.getItem('todoAppData'))
+  saveData({tasks: [], categories: ['General'], journal: [], streak: {current: 0, lastDate: null}});
+
+renderCats();
+  </script>
+</body>
+</html>

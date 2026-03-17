@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard — To-Do Manager</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #a0f1ff, #d8a9ff);
+      --card: #fff;
+      --accent: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      margin: 0;
+      background: var(--bg);
+      color: #222;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 36px auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .muted {
+      color: #555;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(20, 20, 60, 0.08);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .big {
+      grid-column: span 2;
+    }
+
+    .progress {
+      height: 14px;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      border-radius: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #e14b4b;
+    }
+
+    input[type="text"] {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      flex: 1;
+    }
+
+    ul {
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Dashboard</h1>
+        <div class="muted" id="greeting">Hello —</div>
+      </div>
+      <div>
+        <button class="btn" onclick="location.href='tasks.html'">Go to Tasks</button>
+        <button class="btn" onclick="location.href='categories.html'">Categories</button>
+      </div>
+    </header>
+
+    <div class="controls">
+      <input id="quickInput" type="text" placeholder="Task - Priority - Time (HH:MM)">
+      <button class="btn" onclick="quickAdd()">Quick Add</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Total Tasks</h3>
+        <div id="total">0</div>
+      </div>
+
+      <div class="card">
+        <h3>Completed</h3>
+        <div id="completed">0</div>
+      </div>
+
+      <div class="card">
+        <h3>Pending</h3>
+        <div id="pending">0</div>
+      </div>
+
+      <div class="card big">
+        <h3>Today’s Progress</h3>
+        <div class="progress" style="margin-top:12px">
+          <div id="todayBar" class="bar" style="width:0%;background:linear-gradient(90deg,#00d4ff,#6c63ff)"></div>
+        </div>
+        <div class="muted" id="todayText" style="margin-top:8px">No tasks yet.</div>
+      </div>
+
+      <div class="card">
+        <h3>Streak</h3>
+        <div id="streak">0 days</div>
+        <div class="muted" style="margin-top:8px">Complete at least one task each day to increase streak.</div>
+      </div>
+
+      <div class="card">
+        <h3>Motivation</h3>
+        <div id="quote" class="muted">—</div>
+      </div>
+    </div>
+
+    <section style="margin-top:18px">
+      <h3>Recent Completed Tasks</h3>
+      <ul id="journalList"></ul>
+    </section>
+
+  </div>
+
+  <script>
+    function loadData() {
+      const raw = localStorage.getItem('todoAppData');
+      if (!raw) return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } };
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        return { tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } };
+      }
+    }
+
+    function saveData(d) {
+      localStorage.setItem('todoAppData', JSON.stringify(d));
+    }
+
+    function render() {
+      const data = loadData();
+      const total = data.tasks.length;
+      const completed = data.tasks.filter(t => t.done).length;
+      const pending = total - completed;
+
+      document.getElementById('total').innerText = total;
+      document.getElementById('completed').innerText = completed;
+      document.getElementById('pending').innerText = pending;
+
+      const todayTasks = data.tasks.filter(t => {
+        if (!t.due) return false;
+        const due = new Date(t.due);
+        const now = new Date();
+        return due.toDateString() === now.toDateString();
+      });
+
+      const doneToday = todayTasks.filter(t => t.done).length;
+      const pct = todayTasks.length ? Math.round((doneToday / todayTasks.length) * 100) : 0;
+
+      document.getElementById('todayBar').style.width = pct + '%';
+      document.getElementById('todayText').innerText = todayTasks.length
+        ? `${doneToday} / ${todayTasks.length} today's tasks completed`
+        : "No tasks for today";
+
+      document.getElementById('streak').innerText = data.streak.current + " days";
+
+      const quotes = [
+        "Small steps every day.",
+        "Finish small wins first.",
+        "Start now — not later.",
+        "Consistency beats intensity."
+      ];
+      document.getElementById('quote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+
+      const j = (data.journal || []).slice(-6).reverse();
+      const ul = document.getElementById('journalList');
+      ul.innerHTML = '';
+
+      j.forEach(item => {
+        const li = document.createElement('li');
+        li.innerText = `${item.date.split('T')[0]} - ${item.title}`;
+        ul.appendChild(li);
+      });
+
+      const username = sessionStorage.getItem('loggedInUser') || 'User';
+      document.getElementById('greeting').innerText = `Hello, ${username}!`;
+    }
+
+    function quickAdd() {
+      const v = document.getElementById('quickInput').value.trim();
+      if (!v) return;
+      const parts = v.split('-').map(s => s.trim());
+      const title = parts[0];
+      const pr = parts[1] || 'Low';
+      const time = parts[2] || '';
+
+      const data = loadData();
+      const task = {
+        id: Date.now(),
+        title,
+        desc: '',
+        priority: pr,
+        category: 'General',
+        due: time ? new Date().toISOString().split('T')[0] + "T" + time + ":00" : null,
+        done: false,
+        created: new Date().toISOString()
+      };
+
+      data.tasks.push(task);
+      saveData(data);
+      document.getElementById('quickInput').value = '';
+      render();
+    }
+
+    if (!localStorage.getItem('todoAppData'))
+      saveData({ tasks: [], categories: ['General'], journal: [], streak: { current: 0, lastDate: null } });
+
+    render();
+  </script>
+</body>
+</html>

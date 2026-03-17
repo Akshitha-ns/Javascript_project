@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search | To-Do Manager</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #7ad6f0, #6256e8);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      width: 380px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 25px;
+      color: #2d3436;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    select, input, button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    select:focus, input:focus {
+      border-color: #6c5ce7;
+    }
+
+    select {
+      flex: 1;
+    }
+
+    input {
+      flex: 2;
+    }
+
+    button {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #5548d8;
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .info {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Search Your To-Do Items</h2>
+
+    <div class="search-box">
+      <select id="searchType">
+        <option value="">Select Option</option>
+        <option value="category">Category</option>
+        <option value="task">Task</option>
+        <option value="dashboard">Dashboard</option>
+      </select>
+
+      <input type="text" id="searchInput" placeholder="Enter your search..." />
+      <button id="searchBtn">Search</button>
+    </div>
+
+    <p class="info" id="infoText">Login required to use search.</p>
+
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchBtn = document.getElementById("searchBtn");
+      const searchInput = document.getElementById("searchInput");
+      const searchType = document.getElementById("searchType");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const infoText = document.getElementById("infoText");
+
+      // ✅ Check if user is logged in
+      const loggedInUser = sessionStorage.getItem("loggedInUser");
+
+      if (!loggedInUser) {
+        // Disable search if not logged in
+        searchBtn.classList.add("disabled");
+        searchInput.classList.add("disabled");
+        searchType.classList.add("disabled");
+        infoText.textContent = "Please login to use the search.";
+      } else {
+        infoText.textContent = `Welcome, ${loggedInUser}! You can search below.`;
+      }
+
+      // 🔍 Search button functionality
+      searchBtn.addEventListener("click", () => {
+        if (!loggedInUser) {
+          alert("Please login first!");
+          window.location.href = "login.html";
+          return;
+        }
+
+        const type = searchType.value.toLowerCase();
+        const query = searchInput.value.trim().toLowerCase();
+
+        if (!type) {
+          alert("Please select a category to search in.");
+          return;
+        }
+
+        if (!query) {
+          alert("Please enter something to search.");
+          return;
+        }
+
+        // Simulate redirect based on selected option
+        if (type === "category") {
+          alert(`Searching in Category for: "${query}"`);
+          window.location.href = "category.html";
+        } else if (type === "task") {
+          alert(`Searching tasks for: "${query}"`);
+          window.location.href = "task.html";
+        } else if (type === "dashboard") {
+          alert(`Opening Dashboard search for: "${query}"`);
+          window.location.href = "dashboard.html";
+        }
+      });
+
+      // 🔹 Logout functionality
+      logoutBtn.addEventListener("click", () => {
+        sessionStorage.removeItem("loggedInUser");
+        alert("You have been logged out.");
+        window.location.href = "login.html";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do Manager</title>
+
+  <style>
+    :root {
+      --accent: #6c63ff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+    }
+
+    body {
+      background: linear-gradient(135deg, #a0f1ff, #d8a9ff);
+      min-height: 100vh;
+      color: #222;
+    }
+
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.4em;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    .login-btn {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .login-btn:hover {
+      background: #5548d8;
+      transform: translateY(-2px);
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: calc(100vh - 80px);
+      padding: 40px 20px;
+    }
+
+    .hero h1 {
+      font-size: 2.8em;
+      color: #1a1a2e;
+      margin-bottom: 20px;
+      font-weight: 700;
+      animation: fadeInDown 0.8s ease-in-out;
+    }
+
+    .hero p {
+      font-size: 1.1em;
+      color: #555;
+      max-width: 600px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+      animation: fadeInUp 0.8s ease-in-out;
+    }
+
+    .cta-btn {
+      background: var(--accent);
+      border: none;
+      padding: 14px 40px;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+      transition: 0.3s;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .cta-btn:hover {
+      background: #5548d8;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+    }
+
+    footer {
+      background: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      padding: 20px;
+      color: #333;
+      font-size: 0.9em;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">Personal To-Do Manager</div>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="tasks.html">Tasks</a>
+      <a href="categories.html">Categories</a>
+      <button class="login-btn" id="loginBtn">Login</button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Organize Your Life Efficiently</h1>
+    <p>
+      Manage your daily tasks, track your progress, stay consistent,
+      and boost productivity with your personal To-Do Manager.
+    </p>
+
+    <button class="cta-btn" onclick="startApp()">Get Started</button>
+  </section>
+
+  <footer>
+    © 2026 Personal To-Do Manager. All rights reserved.
+  </footer>
+
+  <script>
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      window.location.href = "login.html";
+    });
+
+    function startApp() {
+      const user = sessionStorage.getItem("loggedInUser");
+
+      if (user) {
+        window.location.href = "dashboard.html";
+      } else {
+        alert("Please login first!");
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+
+</body>
+</html>
