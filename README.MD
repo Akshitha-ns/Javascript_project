@@ -21,7 +21,7 @@ The entire application uses browser's `localStorage` for data persistence and `s
 
 ## 📁 File Structure & Description
 
-### 1. **front.html** - Landing Page
+### 1. **index.html** - Landing Page
 **Purpose:** Main entry point and landing page of the application.
 
 **Features:**
@@ -269,7 +269,7 @@ The entire application uses browser's `localStorage` for data persistence and `s
 ## 🔐 Authentication Flow
 
 ```
-front.html → login.html
+index.html → login.html
                 ↓
             (Register or Login)
                 ↓
